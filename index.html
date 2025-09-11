@@ -1,0 +1,2186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8"/>
+    <title>Arizona Hype — Clicker</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg1: #4a001f;
+            --bg2: #1a0010;
+            --neon: #ff0077;
+            --neon-soft: #ff99cc;
+            --success: #77ff00;
+            --warning: #ffcc00;
+            --error: #ff3333;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Press Start 2P', cursive;
+            background: radial-gradient(circle at top, var(--bg1), var(--bg2));
+            color: var(--neon);
+            text-align: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 20px;
+        }
+
+        /* Стили для модального окна игры */
+        .game-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1a0010;
+            border: 3px solid var(--neon);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(255, 0, 119, 0.4);
+            z-index: 1002;
+            min-width: 350px;
+            max-width: 500px;
+            color: var(--neon-soft);
+        }
+
+        .game-modal h3 {
+            color: var(--neon);
+            margin: 0 0 15px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .game-input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 2px solid #660033;
+            border-radius: 8px;
+            background: #050003;
+            color: var(--neon);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 11px;
+        }
+
+        .game-btn {
+            background: transparent;
+            border: 2px solid var(--neon);
+            color: var(--neon);
+            padding: 10px 15px;
+            margin: 8px 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+
+        .game-btn:hover {
+            background: var(--neon);
+            color: #111;
+        }
+
+        .game-btn.accept {
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .game-btn.accept:hover {
+            background: var(--success);
+            color: #111;
+        }
+
+        .game-btn.reject {
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .game-btn.reject:hover {
+            background: var(--error);
+            color: #111;
+        }
+
+        .timer {
+            font-size: 24px;
+            color: var(--warning);
+            margin: 15px 0;
+            text-shadow: 0 0 10px var(--warning);
+        }
+
+        .game-result {
+            font-size: 18px;
+            color: var(--success);
+            margin: 15px 0;
+            text-shadow: 0 0 8px var(--success);
+        }
+
+        .coin-flip {
+            font-size: 40px;
+            margin: 20px 0;
+            animation: flip 2s infinite;
+        }
+
+        @keyframes flip {
+            0%, 100% { transform: rotateY(0deg); }
+            50% { transform: rotateY(180deg); }
+        }
+
+        .invitation-info {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--neon);
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 11px;
+        }
+
+        /* Остальные стили остаются без изменений */
+        header {
+            padding: 18px 10px;
+            font-size: 20px;
+            text-shadow: 0 0 10px var(--neon);
+        }
+
+        .subtext {
+            font-size: 11px;
+            color: var(--neon-soft);
+            margin-top: -8px;
+        }
+
+        .auth-icons {
+            position: fixed;
+            right: 16px;
+            top: 8px;
+            z-index: 900;
+        }
+
+        .auth-icons img {
+            width: 36px;
+            height: 36px;
+            margin-left: 10px;
+            cursor: pointer;
+            filter: drop-shadow(0 0 6px var(--neon));
+        }
+
+        .stats {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 18px;
+        }
+
+        .stat {
+            width: 150px;
+            border: 2px solid var(--neon);
+            border-radius: 12px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.25);
+        }
+
+        .stat .title {
+            font-size: 12px;
+            color: var(--neon-soft);
+        }
+
+        .stat .value {
+            font-size: 18px;
+            margin-top: 8px;
+        }
+
+        .menu {
+            margin: 12px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .menu button {
+            background: transparent;
+            border: 2px solid var(--neon);
+            color: var(--neon);
+            padding: 8px 12px;
+            margin: 6px;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .menu button:hover {
+            background: var(--neon);
+            color: #111;
+            transform: translateY(-2px);
+        }
+
+        .submenu {
+            display: none;
+            position: absolute;
+            top: 44px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 5, 8, 0.95);
+            border: 2px solid var(--neon);
+            padding: 8px;
+            border-radius: 8px;
+            gap: 8px;
+            display: flex;
+            white-space: nowrap;
+        }
+
+        .submenu a {
+            display: inline-block;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #660033;
+            text-decoration: none;
+            color: var(--neon);
+            font-size: 12px;
+        }
+
+        .submenu a:hover {
+            background: var(--neon);
+            color: #111;
+        }
+
+        .menu .help:hover .submenu {
+            display: flex;
+            animation: fadeIn .25s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .clicker-area {
+            margin-top: 18px;
+            position: relative;
+        }
+
+        .click-btn {
+            font-size: 18px;
+            background: #0b0008;
+            border: 3px solid var(--neon);
+            padding: 18px 32px;
+            border-radius: 14px;
+            color: var(--neon);
+            cursor: pointer;
+            transition: transform .12s, background .12s;
+        }
+
+        .click-btn:hover {
+            transform: scale(1.06);
+            background: var(--neon);
+            color: #111;
+        }
+
+        .click-btn:active {
+            transform: scale(0.95);
+        }
+
+        .click-btn:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .coin-animation {
+            position: absolute;
+            pointer-events: none;
+            font-size: 24px;
+            animation: floatUp 1.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-60px);
+                opacity: 0;
+            }
+        }
+
+        .info-box {
+            max-width: 720px;
+            margin: 16px auto;
+            background: rgba(0, 0, 0, 0.35);
+            border: 2px solid var(--neon);
+            padding: 14px;
+            border-radius: 10px;
+            text-align: left;
+            color: var(--neon-soft);
+            font-size: 12px;
+        }
+
+        .glow-link {
+            font-size: 11px;
+            text-decoration: none;
+            padding: 2px 6px;
+            border-radius: 6px;
+            animation: glow 3s infinite alternate;
+            display: inline-block;
+        }
+
+        @keyframes glow {
+            0% {
+                color: var(--neon);
+                text-shadow: 0 0 6px rgba(255, 0, 119, 0.18);
+            }
+            33% {
+                color: #77ff00;
+                text-shadow: 0 0 6px rgba(119, 255, 0, 0.12);
+            }
+            66% {
+                color: #00ccff;
+                text-shadow: 0 0 6px rgba(0, 204, 255, 0.12);
+            }
+            100% {
+                color: var(--neon);
+                text-shadow: 0 0 6px rgba(255, 0, 119, 0.18);
+            }
+        }
+
+        .log-box {
+            max-width: 720px;
+            margin: 12px auto;
+            background: rgba(0, 0, 0, 0.35);
+            border: 2px solid var(--neon);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: left;
+            font-size: 12px;
+            color: var(--neon-soft);
+        }
+
+        .log-entry {
+            padding: 6px;
+            border-bottom: 1px dashed rgba(255, 0, 119, 0.08);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal .box {
+            width: 360px;
+            background: #1a0010;
+            border: 2px solid var(--neon);
+            padding: 14px;
+            border-radius: 10px;
+            text-align: center;
+            position: relative;
+        }
+
+        .modal h2 {
+            font-size: 14px;
+            margin: 6px 0 10px;
+        }
+
+        .modal input {
+            width: 92%;
+            padding: 8px;
+            margin: 6px 0;
+            border-radius: 6px;
+            border: 1px solid #440022;
+            background: #050003;
+            color: var(--neon);
+            font-size: 12px;
+        }
+
+        .password-row {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .eye {
+            position: absolute;
+            right: 34px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--neon);
+        }
+
+        .modal .small {
+            font-size: 11px;
+            color: var(--neon-soft);
+            margin-top: 8px;
+            cursor: pointer;
+        }
+
+        .modal .recaptcha {
+            margin-top: 8px;
+            background: #080408;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            color: var(--neon-soft);
+            font-size: 11px;
+        }
+
+        .shop {
+            max-width: 720px;
+            margin: 20px auto;
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .shop-item {
+            background: rgba(0, 0, 0, 0.35);
+            border: 2px solid var(--neon);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .shop-item h3 {
+            font-size: 14px;
+            margin: 0 0 10px;
+            color: var(--neon);
+        }
+
+        .shop-item p {
+            font-size: 11px;
+            color: var(--neon-soft);
+            margin: 8px 0;
+        }
+
+        .shop-item .cost {
+            color: var(--success);
+            margin: 8px 0;
+        }
+
+        .shop-item button {
+            background: transparent;
+            border: 1px solid var(--neon);
+            color: var(--neon);
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .shop-item button:hover {
+            background: var(--neon);
+            color: #111;
+        }
+
+        .shop-item button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .withdraw-box {
+            max-width: 720px;
+            margin: 20px auto;
+            background: rgba(0, 0, 0, 0.35);
+            border: 2px solid var(--neon);
+            padding: 14px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .withdraw-box h2 {
+            font-size: 16px;
+            margin: 0 0 14px;
+            color: var(--neon);
+            text-align: center;
+        }
+
+        .withdraw-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .withdraw-form input {
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #440022;
+            background: #050003;
+            color: var(--neon);
+            font-size: 12px;
+        }
+
+        .withdraw-form button {
+            background: var(--neon);
+            border: none;
+            color: #111;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .withdraw-form button:hover {
+            background: #ff3399;
+        }
+
+        .raindrop {
+            position: fixed;
+            width: 2px;
+            height: 18px;
+            background: var(--neon);
+            top: -30px;
+            left: 0;
+            opacity: .45;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(110vh);
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--neon);
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: var(--neon);
+            z-index: 1001;
+            animation: slideIn .3s ease, fadeOut .5s ease 2.5s forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                top: -100px;
+                opacity: 0;
+            }
+            to {
+                top: 20px;
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        .modal .error {
+            color: #ff3333;
+            font-size: 11px;
+            margin: 4px 0;
+            display: none;
+        }
+
+        .modal .input-error {
+            border-color: #ff3333 !important;
+        }
+
+        /* Стили для кнопки профиля */
+        .profile-btn {
+            position: fixed;
+            right: 16px;
+            top: 8px;
+            z-index: 900;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.7);
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+
+        .profile-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.9);
+        }
+
+        .profile-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1a0010;
+            border: 2px solid var(--neon);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(255, 0, 119, 0.3);
+            z-index: 1000;
+            min-width: 280px;
+            color: var(--neon-soft);
+            font-size: 12px;
+        }
+
+        .profile-info {
+            margin: 10px 0;
+            line-height: 1.6;
+            padding: 5px;
+            border-bottom: 1px dashed rgba(255, 0, 119, 0.2);
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+
+        /* Прогресс бар уровня */
+        .level-progress {
+            width: 100%;
+            height: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            margin: 8px 0;
+            overflow: hidden;
+            border: 1px solid var(--neon);
+        }
+
+        .level-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon), #ff3399);
+            transition: width 0.5s ease;
+        }
+
+        /* Стиль для минимальной суммы вывода */
+        .min-withdraw {
+            font-size: 11px;
+            color: var(--warning);
+            margin: 5px 0;
+        }
+
+        /* Стили для подсказки */
+        .click-tooltip {
+            position: fixed;
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border: 2px solid #ff0000;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 10000;
+            white-space: nowrap;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            display: none;
+        }
+
+        /* Стили для крестиков закрытия */
+        .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: transparent;
+            border: none;
+            color: var(--neon);
+            font-size: 18px;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--neon);
+            color: #111;
+            transform: scale(1.1);
+        }
+
+        /* Стили для модального окна помощи */
+        .help-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1a0010;
+            border: 2px solid var(--neon);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(255, 0, 119, 0.3);
+            z-index: 1000;
+            min-width: 300px;
+            color: var(--neon-soft);
+            font-size: 12px;
+        }
+
+        .help-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .help-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--neon);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .help-item:hover {
+            background: rgba(255, 0, 119, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .help-item a {
+            color: var(--neon);
+            text-decoration: none;
+            display: block;
+            padding: 5px;
+        }
+
+        .help-item a:hover {
+            color: #fff;
+        }
+
+        /* Стиль для кнопки Admin Panel */
+        .admin-panel-btn {
+            background: linear-gradient(45deg, #ff6b6b, #c0392b);
+            border: 2px solid #fff;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+            width: 100%;
+        }
+
+        .admin-panel-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.7);
+            background: linear-gradient(45deg, #ff5252, #b83232);
+        }
+
+        /* Стили для топа игроков */
+        .top-box {
+            max-width: 720px;
+            margin: 20px auto;
+            background: rgba(0, 0, 0, 0.35);
+            border: 2px solid var(--neon);
+            padding: 14px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .top-box h2 {
+            font-size: 16px;
+            margin: 0 0 14px;
+            color: var(--neon);
+            text-align: center;
+        }
+
+        .top-list {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+
+        .top-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            border-bottom: 1px dashed rgba(255, 0, 119, 0.2);
+        }
+
+        .top-item:last-child {
+            border-bottom: none;
+        }
+
+        .top-position {
+            font-weight: bold;
+            color: var(--neon);
+            margin-right: 10px;
+        }
+
+        .top-info {
+            flex-grow: 1;
+        }
+
+        .top-virts {
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .top-note {
+            font-size: 10px;
+            color: var(--neon-soft);
+            text-align: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(255, 0, 119, 0.2);
+        }
+
+        /* Стили для капчи */
+        .captcha-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1a0010;
+            border: 3px solid var(--neon);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(255, 0, 119, 0.4);
+            z-index: 1003;
+            min-width: 300px;
+            color: var(--neon-soft);
+            text-align: center;
+        }
+
+        .captcha-code {
+            font-size: 24px;
+            letter-spacing: 5px;
+            background: rgba(255, 0, 119, 0.1);
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 5px;
+            color: var(--neon);
+            font-weight: bold;
+        }
+
+        .captcha-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #660033;
+            border-radius: 8px;
+            background: #050003;
+            color: var(--neon);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* Кнопка выхода в профиле */
+        .logout-btn {
+            background: transparent;
+            border: 2px solid var(--error);
+            color: var(--error);
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 11px;
+            margin-top: 15px;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background: var(--error);
+            color: #111;
+        }
+
+        .profile-divider {
+            height: 1px;
+            background: rgba(255, 0, 119, 0.3);
+            margin: 15px 0;
+        }
+
+        /* Часы внизу страницы */
+        #clock {
+            font-size: 16px;
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-family: 'Press Start 2P', sans-serif;
+            width: 100%;
+            z-index: 1000;
+            pointer-events: none;
+            color: rgb(255, 255, 255);
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8), 0 0 10px rgba(255, 255, 255, 0.6), 0 0 15px rgba(255, 255, 255, 0.4);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+<header>💎 Arizona Hype 💎</header>
+<div class="subtext">by.retroware</div>
+
+<!-- Кнопка профиля -->
+<button class="profile-btn" onclick="showProfile()">👤 Профиль</button>
+
+<div class="auth-icons">
+    <img title="Вход" src="https://cdn-icons-png.flaticon.com/512/1828/1828395.png" onclick="openLogin()" id="loginIcon"/>
+</div>
+
+<div class="stats">
+    <div class="stat">
+        <div class="title">Монеты</div>
+        <div id="coins" class="value">0</div>
+    </div>
+    <div class="stat">
+        <div class="title">Вирты</div>
+        <div id="virts" class="value">0</div>
+        <div class="title" style="font-size: 10px; margin-top: 5px;"></div>
+    </div>
+    <div class="stat">
+        <div class="title">Сила клика</div>
+        <div id="power" class="value">1</div>
+    </div>
+    <div class="stat">
+        <div class="title">Всего кликов</div>
+        <div id="totalClicks" class="value">0</div>
+    </div>
+</div>
+
+<div class="menu">
+    <button onclick="openMiniGames()">🎮 Мини-игры</button>
+    <button onclick="toggleLog()">📊 Сессии</button>
+    <button onclick="toggleShop()">🛒 Магазин</button>
+    <button onclick="toggleWithdraw()">💸 Вывод</button>
+    <button onclick="toggleTop()">🏆 Топ</button>
+    <button onclick="toggleHelp()">📌 Помощь</button>
+    <button onclick="toggleInfo()">🔎 Что это?</button>
+</div>
+
+<div class="clicker-area">
+    <p style="color:var(--neon-soft);font-size:13px;margin-bottom:8px">Кликай, чтобы зарабатывать монеты!</p>
+    <button id="clickBtn" class="click-btn" onclick="clickCoin()" disabled>👆 Кликни!</button>
+</div>
+
+<!-- Модальное окно мини-игр -->
+<div class="game-modal" id="miniGamesModal">
+    <h3>🎮 Мини-игры</h3>
+    <div style="display: grid; gap: 10px; margin: 15px 0;">
+        <button class="game-btn" onclick="openCoinGame()">🪙 Орёл и Решка</button>
+        <button class="game-btn" onclick="showNotification('В разработке', 'info')">🎲 Кости (скоро)</button>
+        <button class="game-btn" onclick="showNotification('В разработке', 'info')">🎰 Слоты (скоро)</button>
+    </div>
+    <button class="close-btn" onclick="closeMiniGames()">×</button>
+</div>
+
+<!-- Модальное окно игры Орёл и Решка -->
+<div class="game-modal" id="coinGameModal">
+    <h3>🪙 Орёл и Решка</h3>
+    <p style="font-size: 11px; margin: 10px 0; color: var(--warning)">
+        Минимальная ставка: 1.000.000 виртов<br>
+        Минимальный уровень: 30
+    </p>
+    
+    <input type="text" id="opponentVk" class="game-input" placeholder="Ссылка VK соперника">
+    <input type="number" id="betAmount" class="game-input" placeholder="Сумма ставки (от 1000000)" min="1000000">
+    
+    <button class="game-btn" onclick="sendCoinInvite()">🎯 Отправить приглашение!</button>
+    <button class="close-btn" onclick="closeCoinGame()">×</button>
+</div>
+
+<!-- Модальное окно приглашения в игру -->
+<div class="game-modal" id="inviteModal">
+    <h3>🎯 Приглашение в игру</h3>
+    <div class="invitation-info" id="inviteInfo">
+        <!-- Информация о приглашении будет здесь -->
+    </div>
+    <div class="timer" id="inviteTimer">45</div>
+    <div>
+        <button class="game-btn accept" onclick="acceptInvite()">✅ Принять</button>
+        <button class="game-btn reject" onclick="rejectInvite()">❌ Отклонить</button>
+    </div>
+</div>
+
+<!-- Модальное окно результата игры -->
+<div class="game-modal" id="resultModal">
+    <h3>🎯 Результат игры</h3>
+    <div class="coin-flip" id="coinResult">🪙</div>
+    <div class="game-result" id="gameResult">
+        <!-- Результат игры будет здесь -->
+    </div>
+    <button class="game-btn" onclick="closeResult()">OK</button>
+</div>
+
+<!-- Остальные элементы интерфейса -->
+<div class="shop" id="shop">
+    <div class="shop-item">
+        <h3>Улучшение клика +1</h3>
+        <p>Увеличивает количество монет за клик</p>
+        <div class="cost">Стоимость: <span id="upgrade1Cost">10000</span> монет</div>
+        <button onclick="buyUpgrade('click',getUpgradeCost(1),1)">Купить</button>
+    </div>
+    <div class="shop-item">
+        <h3>Улучшение клика +5</h3>
+        <p>Значительно увеличивает доход за клик</p>
+        <div class="cost">Стоимость: <span id="upgrade2Cost">45000</span> монет</div>
+        <button onclick="buyUpgrade('click',getUpgradeCost(2),5)">Купить</button>
+    </div>
+    <div class="shop-item">
+        <h3>Автокликер</h3>
+        <p>Автоматически кликает каждые 5 секунд</p>
+        <div class="cost">Стоимость: <span id="upgrade3Cost">250000</span> монет</div>
+        <button onclick="buyUpgrade('autoclick',getUpgradeCost(3),1)">Купить</button>
+    </div>
+    <button class="close-btn" onclick="toggleShop()">×</button>
+</div>
+
+<div class="withdraw-box" id="withdrawBox">
+    <h2>Вывод средств</h2>
+    <div class="withdraw-form">
+        <input type="text" id="nickname" placeholder="Ваш игровой никнейм">
+        <input type="number" id="withdrawAmount" placeholder="Сумма для вывода (мин. 3000 виртов)" min="3000">
+        <button onclick="requestWithdraw()">Запросить вывод</button>
+    </div>
+    <p class="min-withdraw">Минимальная сумма для вывода: 3000 виртов</p>
+    <p style="font-size:11px;margin-top:12px">Вывод средств обрабатывается в течение 24 часов</p>
+    <button class="close-btn" onclick="toggleWithdraw()">×</button>
+</div>
+
+<div class="top-box" id="topBox">
+    <h2>🏆 Топ игроков за неделю</h2>
+    <div class="top-list" id="topList">
+        <!-- Топ игроков будет здесь -->
+    </div>
+    <div class="top-note">
+        Каждую неделю топ будет обновляться автоматически
+    </div>
+    <button class="close-btn" onclick="toggleTop()">×</button>
+</div>
+
+<div class="info-box" id="infoBox" style="display:none">
+    <div style="font-family: 'Press Start 2P', sans-serif; font-size: 14px; line-height: 1.5; color: #ffffff; max-width: 600px;">
+        Это кликер — при помощи кликера вы можете заработать деньги на нашем сервере <span id="serverName">Arizona RP Hype</span>.<br><br>
+        Монеты можно конвертировать в вирты через вывод средств.<br><br>
+        Для вывода денег из игры вам нужно нажать на кнопку <a id="withdraw" href="https://vk.com/arizonarphype" target="_blank" style="text-decoration: none;">Вывод,</a> после чего отправить свой игровой Nick Name и сумму от 3000 виртов.<br><br>
+        В течение 24 часов деньги будут переведены на ваш игровой аккаунт.
+    </div>
+    <button class="close-btn" onclick="toggleInfo()">×</button>
+</div>
+
+<div class="log-box" id="logBox" style="display:none">
+    <button class="close-btn" onclick="toggleLog()">×</button>
+</div>
+
+<!-- Модальное окно профиля -->
+<div class="overlay" id="profileOverlay" onclick="hideProfile()"></div>
+<div class="profile-modal" id="profileModal">
+    <h3 style="color:var(--neon);margin:0 0 15px;text-align:center">📊 Статистика профиля</h3>
+    <div class="profile-info"><strong>👤 Никнейм:</strong> <span id="profileUsername">Гость</span></div>
+    <div class="profile-info"><strong>⭐ Уровень игрока:</strong> <span id="profileLevel">1</span> (<span id="levelProgress">0%</span>)</div>
+    <div class="level-progress">
+        <div class="level-progress-bar" id="levelProgressBar" style="width: 0%"></div>
+    </div>
+    <div class="profile-info"><strong>🎯 Выводов виртов:</strong> <span id="profileWithdraws">0</span> раз</div>
+    <div class="profile-info"><strong>📅 Аккаунт создан:</strong> <span id="profileCreated">Неизвестно</span></div>
+    
+    <!-- Кнопка Admin Panel (будет видна только для твоего VK) -->
+    <div id="adminPanelBtn" style="display: none; margin-top: 20px; padding: 10px; border-top: 1px dashed var(--neon-soft);">
+        <button class="admin-panel-btn" onclick="openAdminPanel()">
+            ⚙️ Admin Panel
+        </button>
+    </div>
+    
+    <div class="profile-divider"></div>
+    
+    <!-- Кнопка выхода из аккаунта -->
+    <button class="logout-btn" onclick="logout()">🚪 Выйти из аккаунта</button>
+    
+    <button class="close-btn" onclick="hideProfile()">×</button>
+</div>
+
+<!-- Модальное окно помощи -->
+<div class="overlay" id="helpOverlay" onclick="toggleHelp()"></div>
+<div class="help-modal" id="helpModal">
+    <h3 style="color:var(--neon);margin:0 0 15px;text-align:center">🛟 Помощь</h3>
+    <div class="help-grid">
+        <div class="help-item">
+            <a href="https://vk.com/diego_retroware" target="_blank">🛠️ Тех. раздел</a>
+        </div>
+        <div class="help-item">
+            <a href="https://vk.com/mkaplin2016" target="_blank">👑 Владелец</a>
+        </div>
+        <div class="help-item">
+            <a href="https://vk.com/id241326393" target="_blank">💼 Помощник</a>
+        </div>
+    </div>
+    <button class="close-btn" onclick="toggleHelp()">×</button>
+</div>
+
+<!-- Модальное окно капчи -->
+<div class="captcha-modal" id="captchaModal">
+    <h3>🔒 Подтвердите, что вы не робот</h3>
+    <p>Введите код ниже для продолжения:</p>
+    <div class="captcha-code" id="captchaText">ABCD</div>
+    <input type="text" class="captcha-input" id="captchaInput" placeholder="Введите код" maxlength="6">
+    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+        <button class="game-btn" onclick="validateCaptcha()">✅ Подтвердить</button>
+        <button class="game-btn reject" onclick="closeCaptcha()">❌ Отмена</button>
+    </div>
+</div>
+
+<div class="modal" id="loginModal" style="display:none">
+    <div class="box">
+        <button class="close-btn" onclick="closeModals()">×</button>
+        <h2>Вход</h2>
+        <input id="loginVk" placeholder="VK ID (цифры или ссылка)"/>
+        <div class="error" id="loginVkError">Неверный VK ID</div>
+        <div class="password-row">
+            <input id="loginPass" type="password" placeholder="Пароль"/>
+            <span class="eye" onclick="togglePassword('loginPass')">👁</span>
+        </div>
+        <div class="error" id="loginPassError">Неверный пароль</div>
+        <div style="text-align:left;margin:6px 6%">
+            <label style="font-size:11px;color:var(--neon-soft)"><input id="rememberMe" type="checkbox"/> Запомнить меня</label>
+        </div>
+        <button onclick="doLogin()">Авторизоваться</button>
+        <div class="small" onclick="openRegister()">Нету аккаунта? Создать</div>
+    </div>
+</div>
+
+<div class="modal" id="registerModal" style="display:none">
+    <div class="box">
+        <button class="close-btn" onclick="closeModals()">×</button>
+        <h2>Регистрация</h2>
+        <input id="regName" placeholder="Имя пользователя"/>
+        <div class="error" id="regNameError">Введите имя пользователя</div>
+        <input id="regVk" placeholder="VK ID (цифры или ссылка)"/>
+        <div class="error" id="regVkError">Неверный VK ID</div>
+        <div class="password-row">
+            <input id="regPass" type="password" placeholder="Пароль"/>
+            <span class="eye" onclick="togglePassword('regPass')">👁</span>
+        </div>
+        <div class="error" id="regPassError">Пароль слишком короткий (мин. 4 символа)</div>
+        <div class="password-row">
+            <input id="regConfirm" type="password" placeholder="Подтвердите пароль"/>
+            <span class="eye" onclick="togglePassword('regConfirm')">👁</span>
+        </div>
+        <div class="error" id="regConfirmError">Пароли не совпадают</div>
+        <div class="recaptcha">[ reCAPTCHA (заглушка) ]</div>
+        <button onclick="doRegister()">Создать аккаунт и войти</button>
+    </div>
+</div>
+
+<!-- Подсказка для кнопки клика -->
+<div id="clickTooltip" class="click-tooltip">Войдите в аккаунт!</div>
+
+<div id="clock"></div>
+
+<script>
+    const usersKey = "hype_users_v6", rememberKey = "hype_remembered_v6", topKey = "hype_top_players";
+    let users = JSON.parse(localStorage.getItem(usersKey)) || {}, currentUser = null, sessionStarted = null, sessionClicks = 0, sessionTimer = null, clicksThisMinute = 0, cpmInterval = null, autoClickInterval = null;
+    let clickTimes = []; // Для отслеживания скорости кликов
+    let captchaRequired = false;
+    
+    // Переменные для игры
+    let activeInvites = {}, currentInvite = null, gameTimers = {};
+
+    const clickBtn = document.getElementById("clickBtn"),
+        coinsEl = document.getElementById("coins"),
+        virtsEl = document.getElementById("virts"),
+        powerEl = document.getElementById("power"),
+        totalClicksEl = document.getElementById("totalClicks"),
+        logBox = document.getElementById("logBox"),
+        infoBox = document.getElementById("infoBox"),
+        shopEl = document.getElementById("shop"),
+        withdrawBoxEl = document.getElementById("withdrawBox"),
+        topBoxEl = document.getElementById("topBox"),
+        topListEl = document.getElementById("topList"),
+        loginIcon = document.getElementById("loginIcon"),
+        profileBtn = document.querySelector(".profile-btn");
+
+    const BASE_UPGRADE_COSTS = {
+        1: 3000,
+        2: 20000,
+        3: 100000
+    };
+
+    // Инициализация топа игроков
+    function initTopPlayers() {
+        if (!localStorage.getItem(topKey)) {
+            const defaultTop = [
+                {username: "Retroware", virts: 150000, vk: "diego_retroware"},
+                {username: "Player2", virts: 75000, vk: "player2"},
+                {username: "Player3", virts: 50000, vk: "player3"},
+                {username: "Player4", virts: 25000, vk: "player4"},
+                {username: "Player5", virts: 10000, vk: "player5"}
+            ];
+            localStorage.setItem(topKey, JSON.stringify(defaultTop));
+        }
+        updateTopList();
+    }
+
+    // Обновление списка топа
+    function updateTopList() {
+        const topPlayers = JSON.parse(localStorage.getItem(topKey)) || [];
+        topListEl.innerHTML = '';
+        
+        topPlayers.forEach((player, index) => {
+            const positionClass = index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+            
+            const topItem = document.createElement('div');
+            topItem.className = 'top-item';
+            topItem.innerHTML = `
+                <div class="top-position">${positionClass}</div>
+                <div class="top-info">${player.username}</div>
+                <div class="top-virts">${player.virts.toLocaleString()} виртов</div>
+            `;
+            topListEl.appendChild(topItem);
+        });
+    }
+
+    // Функции для мини-игр
+    function openMiniGames() {
+        if (!currentUser) {
+            showNotification("Войдите в аккаунт чтобы играть", "warning");
+            return;
+        }
+        document.getElementById("miniGamesModal").style.display = "block";
+        document.getElementById("profileOverlay").style.display = "block";
+    }
+
+    function closeMiniGames() {
+        document.getElementById("miniGamesModal").style.display = "none";
+        document.getElementById("profileOverlay").style.display = "none";
+    }
+
+    function openCoinGame() {
+        document.getElementById("miniGamesModal").style.display = "none";
+        document.getElementById("coinGameModal").style.display = "block";
+    }
+
+    function closeCoinGame() {
+        document.getElementById("coinGameModal").style.display = "none";
+        document.getElementById("profileOverlay").style.display = "none";
+    }
+
+    function sendCoinInvite() {
+        if (!currentUser) {
+            showNotification("Войдите в аккаунт", "warning");
+            return;
+        }
+
+        const opponentVk = document.getElementById("opponentVk").value.trim();
+        const betAmount = parseInt(document.getElementById("betAmount").value);
+        const user = users[currentUser];
+
+        // Валидация
+        if (!opponentVk) {
+            showNotification("Введите ссылку VK соперника", "warning");
+            return;
+        }
+
+        if (!betAmount || betAmount < 1000000) {
+            showNotification("Минимальная ставка: 1.000.000 виртов", "warning");
+            return;
+        }
+
+        if (user.level < 30) {
+            showNotification("Для игры нужен 30+ уровень", "warning");
+            return;
+        }
+
+        if (user.virts < betAmount) {
+            showNotification("Недостаточно виртов для ставки", "warning");
+            return;
+        }
+
+        // Создаем приглашение
+        const inviteId = 'invite_' + Date.now();
+        const invite = {
+            id: inviteId,
+            from: currentUser,
+            fromName: user.username,
+            opponentVk: opponentVk,
+            betAmount: betAmount,
+            status: 'pending',
+            createdAt: Date.now()
+        };
+
+        activeInvites[inviteId] = invite;
+        
+        showNotification("Приглашение отправлено! Ожидаем ответа...", "success");
+        closeCoinGame();
+    }
+
+    function showInvite(invite) {
+        currentInvite = invite;
+        const inviteInfo = document.getElementById("inviteInfo");
+        inviteInfo.innerHTML = `
+            <strong>Игрок:</strong> ${invite.fromName}<br>
+            <strong>VK:</strong> ${invite.opponentVk}<br>
+            <strong>Ставка:</strong> ${invite.betAmount.toLocaleString()} виртов<br>
+            <strong>Игра:</strong> Орёл и Решка
+        `;
+        
+        let timeLeft = 45;
+        document.getElementById("inviteTimer").textContent = timeLeft;
+        
+        const timer = setInterval(() => {
+            timeLeft--;
+            document.getElementById("inviteTimer").textContent = timeLeft;
+            
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                rejectInvite();
+            }
+        }, 1000);
+        
+        gameTimers.inviteTimer = timer;
+        document.getElementById("inviteModal").style.display = "block";
+        document.getElementById("profileOverlay").style.display = "block";
+    }
+
+    function acceptInvite() {
+        if (!currentUser || !currentInvite) return;
+        
+        const user = users[currentUser];
+        if (user.virts < currentInvite.betAmount) {
+            showNotification("У вас недостаточно виртов для игры", "warning");
+            rejectInvite();
+            return;
+        }
+
+        if (user.level < 30) {
+            showNotification("Для игры нужен 30+ уровень", "warning");
+            rejectInvite();
+            return;
+        }
+
+        clearInterval(gameTimers.inviteTimer);
+        document.getElementById("inviteModal").style.display = "none";
+        
+        // Симулируем игру
+        playCoinGame(currentInvite);
+    }
+
+    function rejectInvite() {
+        clearInterval(gameTimers.inviteTimer);
+        document.getElementById("inviteModal").style.display = "none";
+        document.getElementById("profileOverlay").style.display = "none";
+        currentInvite = null;
+        showNotification("Приглашение отклонено", "info");
+    }
+
+    function playCoinGame(invite) {
+        // Симуляция игры
+        const result = Math.random() > 0.5 ? 'орёл' : 'решка';
+        const user = users[currentUser];
+        const opponent = users[invite.from]; // В реальном приложении это был бы реальный оппонент
+        
+        let winner = null;
+        let winAmount = invite.betAmount * 2;
+        
+        // Определяем победителя
+        if (result === 'орёл') {
+            winner = currentUser;
+            // Забираем вирты у проигравшего и отдаем победителю
+            user.virts += winAmount;
+            if (opponent) opponent.virts -= invite.betAmount;
+        } else {
+            winner = invite.from;
+            user.virts -= invite.betAmount;
+            if (opponent) opponent.virts += winAmount;
+        }
+        
+        if (winner === currentUser) {
+            showGameResult(`🎉 Вы выиграли! ${winAmount.toLocaleString()} виртов`, result);
+        } else {
+            showGameResult(`😢 Вы проиграли! -${invite.betAmount.toLocaleString()} виртов`, result);
+        }
+        
+        // Сохраняем изменения
+        users[currentUser] = user;
+        if (opponent) users[invite.from] = opponent;
+        saveUsers();
+        updateStatsUI();
+        updateTopPlayer();
+    }
+
+    function showGameResult(message, coinSide) {
+        const resultElement = document.getElementById("gameResult");
+        const coinElement = document.getElementById("coinResult");
+        
+        resultElement.textContent = message;
+        coinElement.textContent = coinSide === 'орёл' ? '🦅 Орёл!' : '🐢 Решка!';
+        
+        document.getElementById("resultModal").style.display = "block";
+        document.getElementById("profileOverlay").style.display = "block";
+    }
+
+    function closeResult() {
+        document.getElementById("resultModal").style.display = "none";
+        document.getElementById("profileOverlay").style.display = "none";
+    }
+
+    // Обновление топа игрока
+    function updateTopPlayer() {
+        if (!currentUser) return;
+        const user = users[currentUser];
+        
+        const topPlayers = JSON.parse(localStorage.getItem(topKey)) || [];
+        const playerIndex = topPlayers.findIndex(p => p.vk === currentUser);
+        
+        if (playerIndex !== -1) {
+            // Обновляем существующего игрока
+            topPlayers[playerIndex].virts = user.virts;
+            topPlayers[playerIndex].username = user.username;
+        } else {
+            // Добавляем нового игрока
+            topPlayers.push({
+                username: user.username,
+                virts: user.virts,
+                vk: currentUser
+            });
+        }
+        
+        // Сортируем по убыванию виртов
+        topPlayers.sort((a, b) => b.virts - a.virts);
+        
+        // Оставляем только топ-5
+        const newTop = topPlayers.slice(0, 5);
+        localStorage.setItem(topKey, JSON.stringify(newTop));
+        
+        updateTopList();
+    }
+
+    // Система капчи - улучшенная версия для обнаружения автокликера
+    function checkForAutoClicker() {
+        const now = Date.now();
+        clickTimes.push(now);
+        
+        // Оставляем только клики за последние 5 секунд
+        clickTimes = clickTimes.filter(time => now - time < 5000);
+        
+        // Если больше 20 кликов за 5 секунд - подозрение на автокликер
+        if (clickTimes.length > 20 && !captchaRequired) {
+            // Проверяем регулярность кликов (стандартное отклонение)
+            const intervals = [];
+            for (let i = 1; i < clickTimes.length; i++) {
+                intervals.push(clickTimes[i] - clickTimes[i-1]);
+            }
+            
+            // Вычисляем стандартное отклонение интервалов
+            const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+            const squareDiffs = intervals.map(value => Math.pow(value - avg, 2));
+            const avgSquareDiff = squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length;
+            const stdDev = Math.sqrt(avgSquareDiff);
+            
+            // Если стандартное отклонение очень маленькое (клики слишком регулярные) - показываем капчу
+            if (stdDev < 50 && intervals.length > 10) {
+                showCaptcha();
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    function generateCaptcha() {
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        let captcha = "";
+        for (let i = 0; i < 6; i++) {
+            captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return captcha;
+    }
+
+    function showCaptcha() {
+        captchaRequired = true;
+        const captchaText = generateCaptcha();
+        document.getElementById('captchaText').textContent = captchaText;
+        document.getElementById('captchaInput').value = '';
+        document.getElementById('captchaModal').style.display = 'block';
+        document.getElementById('profileOverlay').style.display = 'block';
+        clickBtn.disabled = true;
+    }
+
+    function closeCaptcha() {
+        document.getElementById('captchaModal').style.display = 'none';
+        document.getElementById('profileOverlay').style.display = 'none';
+        captchaRequired = false;
+        clickBtn.disabled = false;
+        clickTimes = []; // Сбрасываем счетчик кликов
+    }
+
+    function validateCaptcha() {
+        const entered = document.getElementById('captchaInput').value.toUpperCase();
+        const correct = document.getElementById('captchaText').textContent;
+        
+        if (entered === correct) {
+            closeCaptcha();
+            showNotification("Капча пройдена успешно!", "success");
+        } else {
+            showNotification("Неверный код капчи!", "error");
+            document.getElementById('captchaInput').value = '';
+            // Генерируем новую капчу
+            document.getElementById('captchaText').textContent = generateCaptcha();
+        }
+    }
+
+    function clickCoin() {
+        if (!currentUser) {
+            showNotification("Войдите в аккаунт", "warning");
+            return;
+        }
+        
+        if (captchaRequired) {
+            showCaptcha();
+            return;
+        }
+        
+        // Проверяем на автокликер
+        if (checkForAutoClicker()) {
+            return;
+        }
+        
+        const u = users[currentUser];
+        if (!u) return;
+
+        if (!sessionStarted) {
+            sessionStarted = new Date();
+            sessionClicks = 0;
+        }
+        if (sessionTimer) clearTimeout(sessionTimer);
+        sessionTimer = setTimeout(() => {
+            endSession();
+        }, 5000);
+
+        sessionClicks++;
+        clicksThisMinute++;
+        const earned = u.power || 1;
+        u.coins = (u.coins || 0) + earned;
+        u.totalClicks = (u.totalClicks || 0) + 1;
+        showCoinAnimation(earned);
+        coinsEl.textContent = u.coins;
+        totalClicksEl.textContent = u.totalClicks;
+        users[currentUser] = u;
+        saveUsers();
+        checkLevelUp();
+    }
+
+    function setupHoverTooltip() {
+        const clickBtn = document.getElementById('clickBtn');
+        const tooltip = document.getElementById('clickTooltip');
+        clickBtn.addEventListener('mouseenter', function (e) {
+            if (!currentUser) {
+                tooltip.style.display = 'block';
+                updateTooltipPosition(e);
+            }
+        });
+        clickBtn.addEventListener('mousemove', function (e) {
+            if (!currentUser) {
+                updateTooltipPosition(e);
+            }
+        });
+        clickBtn.addEventListener('mouseleave', function () {
+            tooltip.style.display = 'none';
+        });
+
+        function updateTooltipPosition(e) {
+            const x = e.clientX + 15;
+            const y = e.clientY + 15;
+            tooltip.style.left = x + 'px';
+            tooltip.style.top = y + 'px';
+        }
+    }
+
+    function toggleHelp() {
+        const helpModal = document.getElementById('helpModal');
+        const helpOverlay = document.getElementById('helpOverlay');
+        if (helpModal.style.display === 'block') {
+            helpModal.style.display = 'none';
+            helpOverlay.style.display = 'none';
+        } else {
+            helpModal.style.display = 'block';
+            helpOverlay.style.display = 'block';
+        }
+    }
+
+    function toggleTop() {
+        if (!currentUser) {
+            showNotification("Войдите в аккаунт чтобы посмотреть топ", "warning");
+            return;
+        }
+        topBoxEl.style.display = topBoxEl.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function getUpgradeCost(upgradeId) {
+        if (!currentUser) return BASE_UPGRADE_COSTS[upgradeId];
+        const user = users[currentUser];
+        const level = user.level || 1;
+        return Math.floor(BASE_UPGRADE_COSTS[upgradeId] * Math.pow(1.14, level - 1));
+    }
+
+    function updateShopPrices() {
+        if (!currentUser) return;
+        const user = users[currentUser];
+        const level = user.level || 1;
+        document.getElementById('upgrade1Cost').textContent = getUpgradeCost(1);
+        document.getElementById('upgrade2Cost').textContent = getUpgradeCost(2);
+        document.getElementById('upgrade3Cost').textContent = getUpgradeCost(3);
+    }
+
+    function getClicksForNextLevel(currentLevel) {
+        return Math.floor(1000 * Math.pow(1.22, currentLevel - 1));
+    }
+
+    function checkLevelUp() {
+        if (!currentUser) return;
+        const user = users[currentUser];
+        const currentLevel = user.level || 1;
+        const totalClicks = user.totalClicks || 0;
+        if (currentLevel >= 999) return;
+        const clicksNeeded = getClicksForNextLevel(currentLevel);
+        if (totalClicks >= clicksNeeded) {
+            user.level = currentLevel + 1;
+            users[currentUser] = user;
+            saveUsers();
+            showNotification(`🎉 Поздравляем! Вы достигли ${user.level} уровня!`, "success");
+            updateShopPrices();
+        }
+    }
+
+function getLevelProgress() {
+    if (!currentUser) return {percentage: 0, current: 0, needed: 0};
+    const user = users[currentUser];
+    const currentLevel = user.level || 1;
+    const totalClicks = user.totalClicks || 0;
+    
+    if (currentLevel >= 999) return {percentage: 100, current: 0, needed: 0};
+    
+    const prevLevelClicks = currentLevel === 1 ? 0 : getClicksForNextLevel(currentLevel - 1);
+    const nextLevelClicks = getClicksForNextLevel(currentLevel);
+    const currentLevelClicks = totalClicks - prevLevelClicks;
+    const clicksNeeded = nextLevelClicks - prevLevelClicks;
+    
+    // Добавляем защиту от отрицательных значений и деления на ноль
+    const percentage = clicksNeeded > 0 
+        ? Math.max(0, Math.min(100, Math.floor((currentLevelClicks / clicksNeeded) * 100)))
+        : 100;
+    
+    return {percentage, current: currentLevelClicks, needed: clicksNeeded};
+}
+
+    function showProfile() {
+        if (!currentUser) {
+            showNotification("Войдите в аккаунт чтобы посмотреть профиль", "warning");
+            return;
+        }
+        const user = users[currentUser];
+        document.getElementById('profileUsername').textContent = user.username || 'Неизвестно';
+        document.getElementById('profileLevel').textContent = user.level || 1;
+        const progress = getLevelProgress();
+        document.getElementById('levelProgress').textContent = `${progress.percentage}%`;
+        document.getElementById('levelProgressBar').style.width = `${progress.percentage}%`;
+        document.getElementById('profileWithdraws').textContent = user.withdrawCount || 0;
+        document.getElementById('profileCreated').textContent = user.createdDate || '15.12.2023';
+        
+        // Показываем кнопку Admin Panel только для определенного пользователя
+        if (currentUser === 'diego_retroware') {
+            document.getElementById('adminPanelBtn').style.display = 'block';
+        } else {
+            document.getElementById('adminPanelBtn').style.display = 'none';
+        }
+        
+        document.getElementById('profileModal').style.display = 'block';
+        document.getElementById('profileOverlay').style.display = 'block';
+    }
+
+    function hideProfile() {
+        document.getElementById('profileModal').style.display = 'none';
+        document.getElementById('profileOverlay').style.display = 'none';
+    }
+
+    function openAdminPanel() {
+        window.open('https://by-retroware.github.io/Firebase/', '_blank');
+    }
+
+    for (let i = 0; i < 60; i++) {
+        let d = document.createElement("div");
+        d.className = "raindrop";
+        d.style.left = Math.random() * 100 + "vw";
+        d.style.animationDuration = (Math.random() * 1 + 0.8) + "s";
+        d.style.opacity = (Math.random() * 0.6 + 0.15).toString();
+        d.style.height = (12 + Math.random() * 18) + "px";
+        document.body.appendChild(d);
+    }
+
+    !function init() {
+        const rem = localStorage.getItem(rememberKey);
+        if (rem && users[rem]) {
+            currentUser = rem;
+            loadUserData();
+            enableClick(true);
+            startAutoClicker();
+            updateAuthUI();
+        }
+        updateStatsUI();
+        cpmInterval = setInterval(() => {
+            clicksThisMinute = 0;
+        }, 60000);
+        setupHoverTooltip();
+        initTopPlayers();
+    }();
+
+    function updateAuthUI() {
+        if (currentUser) {
+            loginIcon.style.display = 'none';
+            profileBtn.style.display = 'block';
+        } else {
+            loginIcon.style.display = 'block';
+            profileBtn.style.display = 'none';
+        }
+    }
+
+    function saveUsers() {
+        localStorage.setItem(usersKey, JSON.stringify(users));
+    }
+
+    function openLogin() {
+        if (currentUser) {
+            showNotification("Вы уже вошли в аккаунт", "warning");
+            return;
+        }
+        document.getElementById("loginModal").style.display = "flex";
+        document.getElementById("registerModal").style.display = "none";
+        clearErrors();
+    }
+
+    function openRegister() {
+        if (currentUser) {
+            showNotification("Сначала выйдите из текущего аккаунта", "warning");
+            return;
+        }
+        document.getElementById("registerModal").style.display = "flex";
+        document.getElementById("loginModal").style.display = "none";
+        clearErrors();
+    }
+
+    function closeModals() {
+        document.getElementById("loginModal").style.display = "none";
+        document.getElementById("registerModal").style.display = "none";
+    }
+
+    function togglePassword(id) {
+        const el = document.getElementById(id);
+        el && (el.type = el.type === "password" ? "text" : "password");
+    }
+
+    function clearErrors() {
+        document.querySelectorAll('.error').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('input').forEach(el => el.classList.remove('input-error'));
+    }
+
+    function showError(id, message) {
+        const errorEl = document.getElementById(id);
+        if (errorEl) {
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+        document.querySelector(`#${id.replace('Error', '')}`).classList.add('input-error');
+    }
+
+    function doRegister() {
+        clearErrors();
+        const username = document.getElementById("regName").value.trim(),
+            vk = normalizeVk(document.getElementById("regVk").value.trim()),
+            pass = document.getElementById("regPass").value,
+            confirm = document.getElementById("regConfirm").value;
+        let hasError = false;
+        if (!username) {
+            showError("regNameError", "Введите имя пользователя");
+            hasError = true;
+        }
+        if (!vk || !isValidVk(vk)) {
+            showError("regVkError", "Введите корректный VK ID");
+            hasError = true;
+        }
+        if (!pass || pass.length < 4) {
+            showError("regPassError", "Пароль должен содержать минимум 4 символа");
+            hasError = true;
+        }
+        if (pass !== confirm) {
+            showError("regConfirmError", "Пароли не совпадают");
+            hasError = true;
+        }
+        if (users[vk]) {
+            showError("regVkError", "Пользователь с таким VK ID уже существует");
+            hasError = true;
+        }
+        if (hasError) return;
+        users[vk] = {
+            username: username,
+            password: pass,
+            coins: 1000000, // Начальный баланс для тестирования
+            virts: 10000,   // Начальные вирты для тестирования
+            power: 1,
+            totalClicks: 0,
+            level: 35,      // Уровень для тестирования игры
+            upgrades: {click: 1, autoclick: 0},
+            sessions: [],
+            withdrawCount: 0,
+            createdDate: new Date().toLocaleDateString()
+        };
+        saveUsers();
+        currentUser = vk;
+        loadUserData();
+        enableClick(true);
+        closeModals();
+        showNotification("Аккаунт создан и вы автоматически вошли в систему. Добро пожаловать, " + username + "!", "success");
+        if (document.getElementById("rememberMe").checked) {
+            localStorage.setItem(rememberKey, vk);
+        }
+        updateTopPlayer();
+        updateAuthUI();
+    }
+
+    function doLogin() {
+        clearErrors();
+        const vk = normalizeVk(document.getElementById("loginVk").value.trim()),
+            pass = document.getElementById("loginPass").value,
+            remember = document.getElementById("rememberMe").checked;
+        let hasError = false;
+        if (!vk || !isValidVk(vk)) {
+            showError("loginVkError", "Введите корректный VK ID");
+            hasError = true;
+        }
+        if (!pass) {
+            showError("loginPassError", "Введите пароль");
+            hasError = true;
+        }
+        if (hasError) return;
+        if (!users[vk] || users[vk].password !== pass) {
+            showError("loginPassError", "Неверный VK ID или пароль");
+            hasError = true;
+            return;
+        }
+        currentUser = vk;
+        loadUserData();
+        enableClick(true);
+        closeModals();
+        startAutoClicker();
+        remember ? localStorage.setItem(rememberKey, vk) : localStorage.removeItem(rememberKey);
+        showNotification("Вход выполнен. Привет, " + users[vk].username + "!", "success");
+        updateTopPlayer();
+        updateAuthUI();
+    }
+
+    function isValidVk(vk) {
+        return vk.length > 0 && /^[a-zA-Z0-9_.]+$/.test(vk);
+    }
+
+    function logout() {
+        if (!currentUser) {
+            showNotification("Вы не вошли", "warning");
+            return;
+        }
+        if (sessionStarted) endSession();
+        stopAutoClicker();
+        saveUserData();
+        currentUser = null;
+        enableClick(false);
+        localStorage.removeItem(rememberKey);
+        shopEl.style.display = "none";
+        withdrawBoxEl.style.display = "none";
+        topBoxEl.style.display = "none";
+        hideProfile();
+        showNotification("Вы вышли из аккаунта.", "info");
+        updateAuthUI();
+    }
+
+    function normalizeVk(input) {
+        if (!input) return "";
+        try {
+            const url = new URL(input);
+            if (url.hostname.includes("vk.com")) return url.pathname.replace(/^\/+/, "");
+        } catch (e) {
+        }
+        return input;
+    }
+
+    function saveUserData() {
+        if (!currentUser) return;
+        const u = users[currentUser];
+        if (!u) return;
+        u.coins = parseInt(coinsEl.textContent) || u.coins || 0;
+        u.virts = parseInt(virtsEl.textContent) || u.virts || 0;
+        u.power = parseInt(powerEl.textContent) || u.power || 1;
+        u.totalClicks = parseInt(totalClicksEl.textContent) || u.totalClicks || 0;
+        users[currentUser] = u;
+        saveUsers();
+        updateTopPlayer();
+    }
+
+    function loadUserData() {
+        if (!currentUser) return;
+        const u = users[currentUser];
+        if (!u) return;
+        coinsEl.textContent = u.coins || 0;
+        virtsEl.textContent = u.virts || 0;
+        powerEl.textContent = u.power || 1;
+        totalClicksEl.textContent = u.totalClicks || 0;
+        if (!u.upgrades) u.upgrades = {click: 1, autoclick: 0};
+        if (!u.level) u.level = 1;
+        updateShopPrices();
+    }
+
+    function enableClick(on) {
+        clickBtn.disabled = !on;
+    }
+
+    function showCoinAnimation(amount) {
+        const animation = document.createElement('div');
+        animation.className = 'coin-animation';
+        animation.textContent = `+${amount} 💎`;
+        animation.style.left = `${Math.random() * 80 + 10}%`;
+        document.querySelector('.clicker-area').appendChild(animation);
+        setTimeout(() => {
+            animation.remove();
+        }, 1500);
+    }
+
+    function endSession() {
+        if (!currentUser || !sessionStarted) {
+            sessionStarted = null;
+            sessionClicks = 0;
+            return;
+        }
+        const start = sessionStarted, end = new Date(), clicks = sessionClicks;
+        const u = users[currentUser];
+        u.sessions = u.sessions || [];
+        u.sessions.push({startISO: start.toISOString(), endISO: end.toISOString(), clicks: clicks});
+        users[currentUser] = u;
+        saveUsers();
+        if (logBox.style.display === "block") renderLog();
+        sessionStarted = null;
+        sessionClicks = 0;
+        if (sessionTimer) {
+            clearTimeout(sessionTimer);
+            sessionTimer = null;
+        }
+    }
+
+    function toggleShop() {
+        if (!currentUser) {
+            showNotification("Нужно войти в аккаунт, чтобы открыть магазин.", "warning");
+            return;
+        }
+        shopEl.style.display === "grid" ? shopEl.style.display = "none" : (shopEl.style.display = "grid", withdrawBoxEl.style.display = "none", topBoxEl.style.display = "none");
+    }
+
+    function buyUpgrade(type, cost, value) {
+        if (!currentUser) return;
+        const u = users[currentUser];
+        if (u.coins < cost) {
+            showNotification("Недостаточно монет для покупки!", "warning");
+            return;
+        }
+        u.coins -= cost;
+        switch (type) {
+            case 'click':
+                u.power += value;
+                powerEl.textContent = u.power;
+                showNotification(`Улучшение куплено! Теперь сила клика: ${u.power}`, "success");
+                break;
+            case 'autoclick':
+                u.upgrades.autoclick += value;
+                startAutoClicker();
+                showNotification("Автокликер куплен! Теперь вы будете получать монеты автоматически.", "success");
+                break;
+        }
+        coinsEl.textContent = u.coins;
+        users[currentUser] = u;
+        saveUsers();
+    }
+
+    function startAutoClicker() {
+        if (!currentUser) return;
+        const u = users[currentUser];
+        if (u.upgrades.autoclick > 0) {
+            stopAutoClicker();
+            autoClickInterval = setInterval(() => {
+                if (currentUser) {
+                    const earned = u.power || 1;
+                    u.coins += earned;
+                    coinsEl.textContent = u.coins;
+                    const autoClickNotice = document.createElement('div');
+                    autoClickNotice.textContent = `Автоклик: +${earned} 💎`;
+                    autoClickNotice.style.position = 'fixed';
+                    autoClickNotice.style.bottom = '10px';
+                    autoClickNotice.style.right = '10px';
+                    autoClickNotice.style.background = 'rgba(0,0,0,0.7)';
+                    autoClickNotice.style.color = '#77ff00';
+                    autoClickNotice.style.padding = '5px 10px';
+                    autoClickNotice.style.borderRadius = '5px';
+                    autoClickNotice.style.fontSize = '10px';
+                    autoClickNotice.style.zIndex = '1000';
+                    document.body.appendChild(autoClickNotice);
+                    setTimeout(() => {
+                        autoClickNotice.remove();
+                    }, 2000);
+                    users[currentUser] = u;
+                    saveUsers();
+                }
+            }, 5000);
+        }
+    }
+
+    function stopAutoClicker() {
+        if (autoClickInterval) {
+            clearInterval(autoClickInterval);
+            autoClickInterval = null;
+        }
+    }
+
+    function toggleWithdraw() {
+        if (!currentUser) {
+            showNotification("Нужно войти в аккаунт, чтобы запросить вывод.", "warning");
+            return;
+        }
+        withdrawBoxEl.style.display === "block" ? withdrawBoxEl.style.display = "none" : (withdrawBoxEl.style.display = "block", shopEl.style.display = "none", topBoxEl.style.display = "none");
+    }
+
+    function requestWithdraw() {
+        const nickname = document.getElementById("nickname").value.trim(),
+            amount = parseInt(document.getElementById("withdrawAmount").value),
+            u = users[currentUser];
+        if (!nickname) {
+            showNotification("Введите ваш игровой никнейм", "warning");
+            return;
+        }
+        if (!amount || amount < 3000) {
+            showNotification("Минимальная сумма для вывода: 3000 виртов", "warning");
+            return;
+        }
+        if (u.virts < amount) {
+            showNotification("Недостаточно виртов для вывода", "warning");
+            return;
+        }
+        
+        // Конвертируем вирты в монеты (1 вирт = 100 монет)
+        const coinsToAdd = amount * 100;
+        u.coins += coinsToAdd;
+        u.virts -= amount;
+        u.withdrawCount = (u.withdrawCount || 0) + 1;
+        
+        coinsEl.textContent = u.coins;
+        virtsEl.textContent = u.virts;
+        
+        showNotification(`Запрос на вывод ${amount} виртов отправлен! Конвертировано в ${coinsToAdd.toLocaleString()} монет. Средства будут зачислены в течение 24 часов.`, "success");
+        users[currentUser] = u;
+        saveUsers();
+        document.getElementById("nickname").value = "";
+        document.getElementById("withdrawAmount").value = "";
+        withdrawBoxEl.style.display = "none";
+        updateTopPlayer();
+    }
+
+    function toggleLog() {
+        if (!currentUser) {
+            showNotification("Нужно войти в аккаунт, чтобы просмотреть сессии.", "warning");
+            return;
+        }
+        logBox.style.display === "block" ? logBox.style.display = "none" : (renderLog(), logBox.style.display = "block");
+    }
+
+    function renderLog() {
+        const u = users[currentUser];
+        if (!u) return;
+        let html = `<div style="font-weight:bold;margin-bottom:6px;color:var(--neon)">Сессии — ${u.username}</div>`;
+        if (!u.sessions || u.sessions.length === 0) html += `<div class="log-entry">Сессий ещё нет.</div>`;
+        else {
+            const arr = u.sessions.slice().reverse();
+            arr.forEach(s => {
+                const st = new Date(s.startISO), en = new Date(s.endISO), stStr = st.toLocaleString(), enStr = en.toLocaleString();
+                html += `<div class="log-entry"><b>Начал:</b> ${stStr}<br><b>Закончил:</b> ${enStr} <span style="float:right">(<b>накликал:</b> ${s.clicks})</span></div>`;
+            });
+        }
+        html += `<div style="margin-top:8px;color:var(--neon-soft)"><b>Общее количество кликов:</b> ${u.totalClicks || 0}</div>`;
+        logBox.innerHTML = html;
+    }
+
+    function showNotification(message, type = "info") {
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.textContent = message;
+        if (type === "success") {
+            notification.style.borderColor = "var(--success)";
+            notification.style.color = "var(--success)";
+        } else if (type === "warning") {
+            notification.style.borderColor = "var(--warning)";
+            notification.style.color = "var(--warning)";
+        } else if (type === "error") {
+            notification.style.borderColor = "var(--error)";
+            notification.style.color = "var(--error)";
+        }
+        document.body.appendChild(notification);
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+
+    function updateStatsUI() {
+        coinsEl.textContent = coinsEl.textContent || "0";
+        virtsEl.textContent = virtsEl.textContent || "0";
+        powerEl.textContent = powerEl.textContent || "1";
+        totalClicksEl.textContent = totalClicksEl.textContent || "0";
+    }
+
+    window.addEventListener("beforeunload", () => {
+        if (sessionStarted) endSession();
+        stopAutoClicker();
+        saveUserData();
+    });
+
+    function toggleInfo() {
+        infoBox.style.display = infoBox.style.display === "block" ? "none" : "block";
+    }
+
+    document.getElementById("loginVk").addEventListener("focus", () => {
+    });
+    document.getElementById("regVk").addEventListener("focus", () => {
+    });
+
+    window._hype = {users, saveUsers};
+</script>
+</body>
+</html>
